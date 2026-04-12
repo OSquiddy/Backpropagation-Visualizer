@@ -5,6 +5,7 @@ import { VueFlow, Position, useVueFlow } from '@vue-flow/core'
 import TensorNode from './TensorNode.vue'
 import katex from 'katex'
 import { useLayout } from '@/utils/useLayout'
+import CustomEdge from './CustomEdge.vue'
 
 const initialPosition = { x: 0, y: 0 }
 
@@ -58,7 +59,6 @@ const nodes = ref<Node[]>([
     targetPosition: Position.Left,
     data: { type: 'weight', label: ltx('w_3'), value: 3 },
   },
-
   {
     id: '3',
     type: 'tensor',
@@ -66,40 +66,80 @@ const nodes = ref<Node[]>([
     targetPosition: Position.Left,
     sourcePosition: Position.Right,
     data: { type: 'sum', label: ltx('\\sum') },
-  }
+  },
+  {
+    id: '4',
+    type: 'tensor',
+    position: initialPosition,
+    targetPosition: Position.Left,
+    sourcePosition: Position.Right,
+    data: { type: 'sigmoid', label: ltx('\\sigma') },
+  },
+  {
+    id: '5',
+    type: 'tensor',
+    position: initialPosition,
+    targetPosition: Position.Left,
+    sourcePosition: Position.Right,
+    data: { type: 'loss', label: ltx('L') },
+  },
 ])
 
 const edges = ref<Edge[]>([
   {
     id: '1a->2a',
+    type: 'custom',
     source: '1a',
     target: '2a',
   },
   {
     id: '1b->2b',
+    type: 'custom',
     source: '1b',
     target: '2b',
   },
   {
     id: '1c->2c',
+    type: 'custom',
     source: '1c',
     target: '2c',
   },
   {
     id: '2a->3',
+    type: 'custom',
     source: '2a',
     target: '3',
   },
   {
     id: '2b->3',
+    type: 'custom',
     source: '2b',
     target: '3',
   },
   {
     id: '2c->3',
+    type: 'custom',
     source: '2c',
     target: '3',
   },
+  {
+    id: '3->4',
+    type: 'custom',
+    source: '3',
+    target: '4',
+    data: {
+      katexLabel: ltx('z'),
+    }
+  },
+  {
+    id: '4->5',
+    type: 'custom',
+    source: '4',
+    target: '5',
+    data: {
+      katexLabel: ltx('a'),
+    }
+  }
 ])
 
 const { layout } = useLayout()
@@ -115,9 +155,14 @@ function layoutGraph() {
 
 <template>
   <div class="basic-perceptron-container">
-    <VueFlow :nodes="nodes" :edges="edges" @nodes-initialized="layoutGraph">
+    <VueFlow :nodes="nodes" :edges="edges" @nodes-initialized="layoutGraph" fit-view-on-init>
       <template #node-tensor="props">
         <TensorNode :id="props.id" :data="props.data" :sourcePosition="props.sourcePosition" :targetPosition="props.targetPosition" />
+      </template>
+      <template #edge-custom="customEdgeProps">
+        <CustomEdge
+          v-bind="customEdgeProps"
+        />
       </template>
     </VueFlow>
   </div>
@@ -129,7 +174,7 @@ function layoutGraph() {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: 350px;
+  height: 400px;
   background-color: white;
 }
 </style>
