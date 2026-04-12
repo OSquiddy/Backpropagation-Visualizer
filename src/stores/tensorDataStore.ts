@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
 // type TensorValue = {
@@ -43,16 +43,9 @@ export const useTensorDataStore = defineStore('tensorData', () => {
 
   const layers = ref<Record<number, Layer>>({})
   function addLayerData(layerId: number, payload: LayerPayload) {
-    if (layers.value[layerId]) {
-      layers.value[layerId] = {
-        ...layers.value[layerId],
-        [payload.type]: {
-          ...(layers.value[layerId]?.[payload.type] ?? {}),
-          [payload.data.id]: payload.data,
-        } as Record<string, TensorValue>,
-      }
-    } else {
-      layers.value[layerId] = {
+    let layer = layers.value[layerId]
+    if (!layer) {
+      layer = {
         id: layerId,
         inputs: {} as Record<string, TensorValue>,
         weights: {} as Record<string, TensorValue>,
@@ -60,14 +53,14 @@ export const useTensorDataStore = defineStore('tensorData', () => {
         activations: {} as Record<string, TensorValue>,
         operations: {} as Record<string, TensorValue>,
       }
-      layers.value[layerId] = {
-        ...layers.value[layerId],
-        [payload.type]: {
-          ...(layers.value[layerId]?.[payload.type] ?? {}),
-          [payload.data.id]: payload.data,
-        } as Record<string, TensorValue>,
-      }
+      layers.value[layerId] = layer
     }
+
+    const bucketKey = payload.type
+    if (!layer[bucketKey]) {
+      layer[bucketKey] = {} as Record<string, TensorValue>
+    }
+    layer[bucketKey]![payload.data.id] = payload.data
   }
 
   function $reset() {}
@@ -77,7 +70,8 @@ export const useTensorDataStore = defineStore('tensorData', () => {
   }
 
   function calculateLayerValues(layerId: number) : void {
-    const layer: Layer = layers.value[layerId]
+    const layer = layers.value[layerId]
+    if (!layer) return
 
     console.log(layer)
 
