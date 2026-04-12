@@ -19,7 +19,9 @@ const numberOfLayers = computed(() => getNumberOfLayers())
 console.log(numberOfLayers.value)
 
 watch(numberOfLayers, (newVal: number) => {
-  calculateLayerValues(1)
+  for (let i = 1; i <= newVal; i++) {
+    calculateLayerValues(i)
+  }
 })
 
 const nodes = ref<Node[]>([
@@ -83,7 +85,7 @@ const nodes = ref<Node[]>([
     position: initialPosition,
     targetPosition: Position.Left,
     sourcePosition: Position.Right,
-    data: { type: 'sigmoid', label: ltx('\\sigma'), layer_id: 2 },
+    data: { type: 'sigmoid', label: ltx('\\sigma'), layer_id: 3 },
   },
   {
     id: '5',
@@ -91,7 +93,7 @@ const nodes = ref<Node[]>([
     position: initialPosition,
     targetPosition: Position.Left,
     sourcePosition: Position.Right,
-    data: { type: 'loss', label: ltx('L'), layer_id: 2 },
+    data: { type: 'loss', label: ltx('L'), layer_id: 4 },
   },
 ])
 

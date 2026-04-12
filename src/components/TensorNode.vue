@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Handle, Position, useVueFlow, type Edge, type Node } from '@vue-flow/core'
-import { computed, onMounted, ref } from 'vue'
+import { Handle, Position, useVueFlow, type Edge } from '@vue-flow/core'
+import { computed } from 'vue'
 import { useTensorDataStore } from '@/stores/tensorDataStore'
-import { storeToRefs } from 'pinia'
-import type { LayerKeys, TensorValue } from '@/stores/tensorDataStore'
+// import { storeToRefs } from 'pinia'
+import type { TensorValue } from '@/stores/tensorDataStore'
+import type { LayerPayload } from '@/stores/tensorDataStore'
 
 const props = defineProps<{
   id: string
@@ -14,8 +15,16 @@ const props = defineProps<{
 
 const { getConnectedEdges, findNode } = useVueFlow()
 const tensorValuesStore = useTensorDataStore()
-const { tensorValuesMap, layers } = storeToRefs(tensorValuesStore)
-const { addTensorValue, addLayerData } = tensorValuesStore
+// const { tensorValuesMap, layers } = storeToRefs(tensorValuesStore)
+const { addLayerData } = tensorValuesStore
+
+const children = computed(() => {
+  return getConnectedEdges(props.id).filter((edge) => edge.source === props.id)
+})
+
+const parents = computed(() => {
+  return getConnectedEdges(props.id).filter((edge) => edge.target === props.id)
+})
 
 const incomingValue = computed(() => {
   switch (props.data.type) {
@@ -28,36 +37,77 @@ const incomingValue = computed(() => {
   }
 })
 
-const layerSubType = computed(() => {
+const layerType = computed(() => {
   const type = props.data.type
   if (type == 'cross_entropy' || type == 'mean_squared_error' || type == 'mean_absolute_error') {
     return 'loss'
   }
   if (type == 'relu' || type == 'sigmoid' || type == 'tanh' || type == 'softmax' || type == 'linear') {
-    return 'activations'
+    return 'activation'
   }
-  if (type == 'add' || type == 'subtract' || type == 'multiply' || type == 'divide' || type == 'dot' || type == 'matmul') {
-    return 'operations'
+  if (type == 'add' || type == 'subtract' || type == 'multiply' || type == 'divide' || type == 'dot' || type == 'matmul' || type == 'sum') {
+    return 'operation'
   }
   if (type == 'input' || type == 'weight' || type == 'bias') {
-    return type + 's'
+    return 'data'
   }
   return type
 })
 
-addLayerData(props.data.layer_id, {
-  type: layerSubType.value as LayerKeys,
-  data: {
+const layerSubType = computed(() => {
+  const type = props.data.type
+  switch (type) {
+    case 'input':
+      return 'inputs'
+    case 'weight':
+      return 'weights'
+    case 'bias':
+      return 'biases'
+    default:
+      return type
+  }
+})
+
+let layerDataPayload: LayerPayload | undefined = undefined
+
+if (layerType.value !== 'data') {
+  layerDataPayload = {
+    id: props.data.layer_id,
+    type: layerType.value as 'activation' | 'operation' | 'loss' | 'data',
+    prev: props.data.layer_id - 1,
+    next: props.data.layer_id + 1,
+    data: {
+      id: props.id,
+      type: props.data.type,
+      incomingValue: incomingValue.value,
+      value: props.data.value,
+      outgoingValue: null,
+      gradient: null,
+      parents: parents.value.map((edge) => edge.source),
+      children: children.value.map((edge) => edge.target),
+    } as TensorValue
+  }
+} else {
+  layerDataPayload = {
+    id: props.data.layer_id,
+    type: layerType.value,
+    prev: props.data.layer_id - 1,
+    next: props.data.layer_id + 1,
+  }
+  const subType = layerSubType.value as 'inputs' | 'weights' | 'biases'
+  layerDataPayload[subType] = {
     id: props.id,
     type: props.data.type,
     incomingValue: incomingValue.value,
     value: props.data.value,
     outgoingValue: null,
     gradient: null,
-    parents: [],
-    children: [],
+    parents: parents.value.map((edge) => edge.source),
+    children: children.value.map((edge) => edge.target),
   } as TensorValue
-})
+}
+
+addLayerData(layerDataPayload)
 
 </script>
 
