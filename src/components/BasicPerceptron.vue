@@ -1,16 +1,26 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed, watch } from 'vue'
 import type { Node, Edge } from '@vue-flow/core'
 import { VueFlow, Position, useVueFlow } from '@vue-flow/core'
 import TensorNode from './TensorNode.vue'
 import katex from 'katex'
 import { useLayout } from '@/utils/useLayout'
 import CustomEdge from './CustomEdge.vue'
+import { useTensorDataStore } from '@/stores/tensorDataStore'
+
+const tensorDataStore = useTensorDataStore()
+const { getNumberOfLayers, calculateLayerValues } = tensorDataStore
 
 const initialPosition = { x: 0, y: 0 }
 
 const ltx = (expression: string) => katex.renderToString(expression, { throwOnError: false, output: 'mathml' })
 
+const numberOfLayers = computed(() => getNumberOfLayers())
+console.log(numberOfLayers.value)
+
+watch(numberOfLayers, (newVal: number) => {
+  calculateLayerValues(1)
+})
 
 const nodes = ref<Node[]>([
   {
@@ -18,21 +28,21 @@ const nodes = ref<Node[]>([
     type: 'tensor',
     position: initialPosition,
     sourcePosition: Position.Right,
-    data: { type: 'input', label: ltx('x_1'), value: 2 },
+    data: { type: 'input', label: ltx('x_1'), value: 2, layer_id: 1 },
   },
   {
     id: '1b',
     type: 'tensor',
     position: initialPosition,
     sourcePosition: Position.Right,
-    data: { type: 'input', label: ltx('x_2'), value: 1 },
+    data: { type: 'input', label: ltx('x_2'), value: 1, layer_id: 1 },
   },
   {
     id: '1c',
     type: 'tensor',
     position: initialPosition,
     sourcePosition: Position.Right,
-    data: { type: 'input', label: ltx('x_3'), value: 4 },
+    data: { type: 'input', label: ltx('x_3'), value: 4, layer_id: 1 },
   },
 
   {
@@ -41,7 +51,7 @@ const nodes = ref<Node[]>([
     position: initialPosition,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
-    data: { type: 'weight', label: ltx('w_1'), value: 1 },
+    data: { type: 'weight', label: ltx('w_1'), value: 1, layer_id: 1 },
   },
   {
     id: '2b',
@@ -49,7 +59,7 @@ const nodes = ref<Node[]>([
     position: initialPosition,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
-    data: { type: 'weight', label: ltx('w_2'), value:-2 },
+    data: { type: 'weight', label: ltx('w_2'), value:-2, layer_id: 1 },
   },
   {
     id: '2c',
@@ -57,7 +67,7 @@ const nodes = ref<Node[]>([
     position: initialPosition,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
-    data: { type: 'weight', label: ltx('w_3'), value: 3 },
+    data: { type: 'weight', label: ltx('w_3'), value: 3, layer_id: 1 },
   },
   {
     id: '3',
@@ -65,7 +75,7 @@ const nodes = ref<Node[]>([
     position: initialPosition,
     targetPosition: Position.Left,
     sourcePosition: Position.Right,
-    data: { type: 'sum', label: ltx('\\sum') },
+    data: { type: 'sum', label: ltx('\\sum'), layer_id: 2 },
   },
   {
     id: '4',
@@ -73,7 +83,7 @@ const nodes = ref<Node[]>([
     position: initialPosition,
     targetPosition: Position.Left,
     sourcePosition: Position.Right,
-    data: { type: 'sigmoid', label: ltx('\\sigma') },
+    data: { type: 'sigmoid', label: ltx('\\sigma'), layer_id: 2 },
   },
   {
     id: '5',
@@ -81,50 +91,52 @@ const nodes = ref<Node[]>([
     position: initialPosition,
     targetPosition: Position.Left,
     sourcePosition: Position.Right,
-    data: { type: 'loss', label: ltx('L') },
+    data: { type: 'loss', label: ltx('L'), layer_id: 2 },
   },
 ])
 
 const edges = ref<Edge[]>([
   {
     id: '1a->2a',
-    type: 'custom',
     source: '1a',
     target: '2a',
   },
   {
     id: '1b->2b',
-    type: 'custom',
     source: '1b',
     target: '2b',
   },
   {
     id: '1c->2c',
-    type: 'custom',
     source: '1c',
     target: '2c',
   },
   {
     id: '2a->3',
-    type: 'custom',
     source: '2a',
     target: '3',
+    data: {
+      katexLabel: ltx('w_1x_1'),
+    }
   },
   {
     id: '2b->3',
-    type: 'custom',
     source: '2b',
     target: '3',
+    data: {
+      katexLabel: ltx('w_2x_2'),
+    }
   },
   {
     id: '2c->3',
-    type: 'custom',
     source: '2c',
     target: '3',
+    data: {
+      katexLabel: ltx('w_3x_3'),
+    }
   },
   {
     id: '3->4',
-    type: 'custom',
     source: '3',
     target: '4',
     data: {
@@ -133,7 +145,6 @@ const edges = ref<Edge[]>([
   },
   {
     id: '4->5',
-    type: 'custom',
     source: '4',
     target: '5',
     data: {
@@ -155,7 +166,13 @@ function layoutGraph() {
 
 <template>
   <div class="basic-perceptron-container">
-    <VueFlow :nodes="nodes" :edges="edges" @nodes-initialized="layoutGraph" fit-view-on-init>
+    <VueFlow
+      :nodes="nodes"
+      :edges="edges"
+      @nodes-initialized="layoutGraph"
+      :default-edge-options="{ type: 'custom', animated: true, }"
+      fit-view-on-init
+    >
       <template #node-tensor="props">
         <TensorNode :id="props.id" :data="props.data" :sourcePosition="props.sourcePosition" :targetPosition="props.targetPosition" />
       </template>
