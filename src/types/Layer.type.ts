@@ -32,3 +32,10 @@ export type LayerPayload = {
   biases?: Tensor
   data?: Tensor
 }
+
+export type PerceptronLayer = {
+  tensorIds: Set<string>
+  type: 'data' | 'operation' | 'activation' | 'loss'
+  prev: number | null
+  next: number | null
+}

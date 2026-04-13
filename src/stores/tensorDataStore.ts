@@ -2,8 +2,8 @@ import { ref, shallowRef } from 'vue'
 import { defineStore } from 'pinia'
 import type { Node, Edge } from '@vue-flow/core'
 import { useVueFlow } from '@vue-flow/core'
-import type { Layer, LayerPayload } from '@/types/Layer.type'
-
+import type { Layer, LayerPayload, PerceptronLayer } from '@/types/Layer.type'
+import type { History } from '@/types/History.type'
 import type {
   Tensor,
   ValueTypeTensors,
@@ -18,7 +18,15 @@ export const useTensorDataStore = defineStore('tensorData', () => {
     edges: [],
   })
 
-  // const perceptronStateHistory = ref<History>([])
+  const perceptronStateHistory = ref<History[]>([])
+
+  function addToPerceptronStateHistory(history: History) {
+    perceptronStateHistory.value.push(history)
+  }
+
+  function resetPerceptronStateHistory() {
+    perceptronStateHistory.value = [] as History[]
+  }
 
   function initializeBasicPerceptronGraphData(nodes: Node[], edges: Edge[]) {
     basicPerceptronGraphData.value = { nodes, edges }
@@ -43,7 +51,7 @@ export const useTensorDataStore = defineStore('tensorData', () => {
   }
 
   function calculateIncomingValue(flowId: string, nodeId: string): number {
-    const vf = useVueFlow({ id: flowId })
+    const vf = useVueFlow(flowId)
     const node = vf.findNode(nodeId)
     const parents = vf.getConnectedEdges(nodeId).filter((edge) => edge.target === nodeId)
     if (node?.data.type === 'sum') {
@@ -65,7 +73,7 @@ export const useTensorDataStore = defineStore('tensorData', () => {
   }
 
   function calculateOutgoingValue(flowId: string, nodeId: string): number {
-    const vf = useVueFlow({ id: flowId })
+    const vf = useVueFlow(flowId)
     const node = vf.findNode(nodeId)
     const children = vf.getConnectedEdges(nodeId).filter((edge) => edge.target === nodeId)
     if (node?.data.type === 'add') {
@@ -75,7 +83,7 @@ export const useTensorDataStore = defineStore('tensorData', () => {
   }
 
   function initializeTensorValues(flowId: string): void {
-    const vf = useVueFlow({ id: flowId })
+    const vf = useVueFlow(flowId)
     for (const node of basicPerceptronGraphData.value.nodes) {
       const children = vf.getConnectedEdges(node.id).filter((edge) => edge.source === node.id)
       const parents = vf.getConnectedEdges(node.id).filter((edge) => edge.target === node.id)
@@ -208,14 +216,31 @@ export const useTensorDataStore = defineStore('tensorData', () => {
 
   const perceptronLayerMap = ref<Record<number, PerceptronLayer>>({})
 
-  type PerceptronLayer = {
-    tensorIds: Set<string>
-    type: 'data' | 'operation' | 'activation' | 'loss'
-    prev: number | null
-    next: number | null
+  function initializePerceptronLayerMap() {
+    for (const tensor of Object.values(tensorValuesMap.value)) {
+      let layerType;
+      if (tensor.type === 'input' || tensor.type === 'weight' || tensor.type === 'bias') {
+        layerType = 'data'
+      } else if (tensor.type === 'relu' || tensor.type === 'sigmoid' || tensor.type === 'tanh' || tensor.type === 'softmax' || tensor.type === 'linear') {
+        layerType = 'activation'
+      } else if (tensor.type === 'add' || tensor.type === 'subtract' || tensor.type === 'multiply' || tensor.type === 'divide' || tensor.type === 'dot' || tensor.type === 'matmul' || tensor.type === 'sum') {
+        layerType = 'operation'
+      } else if (tensor.type === 'cross_entropy' || tensor.type === 'mean_squared_error' || tensor.type === 'mean_absolute_error') {
+        layerType = 'loss'
+      }
+
+      addLayerToPerceptronLayerMap(tensor.layerId, {
+        type: layerType as 'data' | 'activation' | 'operation' | 'loss',
+        prev: tensor.layerId > 0 ? tensor.layerId - 1 : null,
+        next: tensor.layerId + 1,
+      })
+
+      addToOrUpdatePerceptronLayerMap(tensor.layerId, tensor.id)
+    }
+
   }
 
-  function addLayerToPerceptronLayerMap(layerId: number, payload: PerceptronLayer) {
+  function addLayerToPerceptronLayerMap(layerId: number, payload: Omit<PerceptronLayer, 'tensorIds'>) {
     if (!perceptronLayerMap.value[layerId]) {
       perceptronLayerMap.value[layerId] = {
         tensorIds: new Set<string>(),
@@ -224,12 +249,9 @@ export const useTensorDataStore = defineStore('tensorData', () => {
         next: payload.next,
       }
     }
-    for (const tensorId of payload.tensorIds) {
-      perceptronLayerMap.value[layerId].tensorIds.add(tensorId)
-    }
   }
 
-  function updatePerceptronLayerMap(layerId: number, payload: string | string[]): void {
+  function addToOrUpdatePerceptronLayerMap(layerId: number, payload: string | string[]): void {
     if (!perceptronLayerMap.value[layerId]) {
       console.error(`Layer ${layerId} not found in perceptronLayerMap`)
       return
@@ -254,7 +276,6 @@ export const useTensorDataStore = defineStore('tensorData', () => {
     }
   }
 
-  function forwardPass(layerId: number): void {}
 
   // function calculateLayerValues(layerId: number): void {
   //   const layer = layers.value[layerId]
@@ -368,7 +389,11 @@ export const useTensorDataStore = defineStore('tensorData', () => {
     initializeBasicPerceptronGraphData,
     updateBasicPerceptronGraphData,
     perceptronLayerMap,
+    initializePerceptronLayerMap,
     addLayerToPerceptronLayerMap,
-    updatePerceptronLayerMap,
+    addToOrUpdatePerceptronLayerMap,
+    perceptronStateHistory,
+    resetPerceptronStateHistory,
+    addToPerceptronStateHistory,
   }
 })

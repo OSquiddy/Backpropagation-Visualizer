@@ -4,7 +4,7 @@ import type { Node, Edge } from '@vue-flow/core'
 import { ref } from 'vue'
 
 export function useLayout(flowId: string) {
-  const { findNode } = useVueFlow({ id: flowId })
+  const { findNode } = useVueFlow(flowId)
 
   const graph = ref(new dagre.graphlib.Graph())
 

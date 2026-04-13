@@ -9,12 +9,12 @@ import { initialNodes, initialEdges } from '@/utils/BasicPerceptronGraphData'
 import { storeToRefs } from 'pinia'
 
 const tensorDataStore = useTensorDataStore()
-const { initializeBasicPerceptronGraphData, updateBasicPerceptronGraphData, initializeTensorValues } = tensorDataStore
+const { initializeBasicPerceptronGraphData, updateBasicPerceptronGraphData, initializeTensorValues, initializePerceptronLayerMap } = tensorDataStore
 const { basicPerceptronGraphData } = storeToRefs(tensorDataStore)
 
 const flowId = 'basic-perceptron'
 const { layout } = useLayout(flowId)
-const { fitView } = useVueFlow({ id: flowId })
+const { fitView } = useVueFlow(flowId)
 
 
 initializeBasicPerceptronGraphData(initialNodes, initialEdges)
@@ -23,6 +23,7 @@ function layoutGraph() {
   const nodes = shallowRef(layout(initialNodes, initialEdges))
   updateBasicPerceptronGraphData(nodes.value, initialEdges)
   initializeTensorValues(flowId)
+  initializePerceptronLayerMap()
   nextTick(() => {
     fitView()
   })
