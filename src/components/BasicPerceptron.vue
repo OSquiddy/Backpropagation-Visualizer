@@ -9,8 +9,10 @@ import { useTensorDataStore } from '@/stores/tensorDataStore'
 import { initialNodes, initialEdges } from '@/utils/BasicPerceptronGraphData'
 import { storeToRefs } from 'pinia'
 const tensorDataStore = useTensorDataStore()
-const { getNumberOfLayers, calculateLayerValues, initializeBasicPerceptronGraphData, updateBasicPerceptronGraphData } = tensorDataStore
+const { getNumberOfLayers, calculateLayerValues, initializeBasicPerceptronGraphData, updateBasicPerceptronGraphData, initializeTensorValues } = tensorDataStore
 const { basicPerceptronGraphData } = storeToRefs(tensorDataStore)
+
+const flowId = 'basic-perceptron'
 
 // const numberOfLayers = computed(() => getNumberOfLayers())
 
@@ -20,8 +22,8 @@ const { basicPerceptronGraphData } = storeToRefs(tensorDataStore)
 //   }
 // })
 
-const { layout } = useLayout()
-const { fitView } = useVueFlow()
+const { layout } = useLayout(flowId)
+const { fitView } = useVueFlow({ id: flowId })
 
 
 initializeBasicPerceptronGraphData(initialNodes, initialEdges)
@@ -29,6 +31,7 @@ initializeBasicPerceptronGraphData(initialNodes, initialEdges)
 function layoutGraph() {
   const nodes = shallowRef(layout(initialNodes, initialEdges))
   updateBasicPerceptronGraphData(nodes.value, initialEdges)
+  initializeTensorValues(flowId)
   nextTick(() => {
     fitView()
   })
@@ -37,20 +40,13 @@ function layoutGraph() {
 
 <template>
   <div class="basic-perceptron-container">
-    <VueFlow
-      :nodes="basicPerceptronGraphData.nodes"
-      :edges="basicPerceptronGraphData.edges"
-      @nodes-initialized="layoutGraph"
-      :default-edge-options="{ type: 'custom', animated: true, }"
-      fit-view-on-init
-    >
+    <VueFlow :id="flowId" :nodes="basicPerceptronGraphData.nodes" :edges="basicPerceptronGraphData.edges"
+      @nodes-initialized="layoutGraph" :default-edge-options="{ type: 'custom', animated: true, }" fit-view-on-init>
       <template #node-tensor="node">
-        <TensorNode :id="node.id" />
+        <TensorNode :id="node.id" :source-position="node.sourcePosition" :target-position="node.targetPosition" />
       </template>
       <template #edge-custom="customEdgeProps">
-        <CustomEdge
-          v-bind="customEdgeProps"
-        />
+        <CustomEdge v-bind="customEdgeProps" />
       </template>
     </VueFlow>
   </div>
@@ -58,6 +54,7 @@ function layoutGraph() {
 
 <style scoped>
 @import 'katex/dist/katex.min.css';
+
 .basic-perceptron-container {
   display: flex;
   flex-direction: column;

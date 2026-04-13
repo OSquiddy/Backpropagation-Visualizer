@@ -1,10 +1,10 @@
 import dagre from '@dagrejs/dagre'
-import { Position, useVueFlow } from '@vue-flow/core'
+import { useVueFlow } from '@vue-flow/core'
 import type { Node, Edge } from '@vue-flow/core'
 import { ref } from 'vue'
 
-export function useLayout() {
-  const { findNode } = useVueFlow()
+export function useLayout(flowId: string) {
+  const { findNode } = useVueFlow({ id: flowId })
 
   const graph = ref(new dagre.graphlib.Graph())
 

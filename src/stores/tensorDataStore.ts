@@ -1,6 +1,7 @@
 import { ref, shallowRef } from 'vue'
 import { defineStore } from 'pinia'
 import type { Node, Edge } from '@vue-flow/core'
+import { useVueFlow } from '@vue-flow/core'
 
 export type TensorValue =
   | {
@@ -13,6 +14,7 @@ export type TensorValue =
       children: string[]
       gradient: number | null | undefined
       label: string
+      layerId: number
     }
   | {
       id: string
@@ -21,26 +23,43 @@ export type TensorValue =
       type: 'relu' | 'sigmoid' | 'tanh' | 'softmax' | 'linear'
       parents: string[]
       children: string[]
-      gradient: number
+      gradient: number | number[]
       label: string
+      layerId: number
     }
   | {
       id: string
-      incomingValue?: number[]
-      outgoingValue?: number
+      incomingValue: number[] | number
+      outgoingValue: number
       type: 'add' | 'subtract' | 'multiply' | 'divide' | 'dot' | 'matmul' | 'sum'
       parents: string[]
       children: string[]
-      gradient: number
+      gradient: number | number[]
       label: string
+      layerId: number
+    }
+  | {
+      id: string
+      incomingValue: number[] | number
+      outgoingValue: number[] | number
+      type: 'cross_entropy' | 'mean_squared_error' | 'mean_absolute_error'
+      parents: string[]
+      children: string[]
+      gradient: number | number[]
+      label: string
+      layerId: number
     }
 
-type ValueTypeTensors = Extract<TensorValue, { type: 'input' | 'weight' | 'bias' }>
-type OperationTypeTensors = Extract<
+export type ValueTypeTensors = Extract<TensorValue, { type: 'input' | 'weight' | 'bias' }>
+export type LossTypeTensors = Extract<
+  TensorValue,
+  { type: 'cross_entropy' | 'mean_squared_error' | 'mean_absolute_error' }
+>
+export type OperationTypeTensors = Extract<
   TensorValue,
   { type: 'add' | 'subtract' | 'multiply' | 'divide' | 'dot' | 'matmul' | 'sum' }
 >
-type ActivationTypeTensors = Extract<
+export type ActivationTypeTensors = Extract<
   TensorValue,
   { type: 'relu' | 'sigmoid' | 'tanh' | 'softmax' | 'linear' }
 >
@@ -78,10 +97,9 @@ export type LayerPayload = {
 }
 
 export const useTensorDataStore = defineStore('tensorData', () => {
-
-  const basicPerceptronGraphData = shallowRef<{ nodes: Node[], edges: Edge[] }>({
+  const basicPerceptronGraphData = shallowRef<{ nodes: Node[]; edges: Edge[] }>({
     nodes: [],
-    edges: []
+    edges: [],
   })
 
   function initializeBasicPerceptronGraphData(nodes: Node[], edges: Edge[]) {
@@ -94,7 +112,7 @@ export const useTensorDataStore = defineStore('tensorData', () => {
   function updateBasicPerceptronGraphData(nodes: Node[], edges: Edge[]) {
     basicPerceptronGraphData.value = {
       nodes: nodes ?? basicPerceptronGraphData.value.nodes,
-      edges: edges ?? basicPerceptronGraphData.value.edges
+      edges: edges ?? basicPerceptronGraphData.value.edges,
     }
   }
 
@@ -106,13 +124,122 @@ export const useTensorDataStore = defineStore('tensorData', () => {
     }
   }
 
+  function calculateIncomingValue(flowId: string, nodeId: string): number {
+    const vf = useVueFlow({ id: flowId })
+    const node = vf.findNode(nodeId)
+    const parents = vf.getConnectedEdges(nodeId).filter((edge) => edge.target === nodeId)
+    if (node?.data.type === 'sum') {
+      return parents.reduce((acc, curr) => acc + (vf.findNode(curr.source)?.data.value ?? 0), 0)
+    }
+    if (node?.data.type === 'add') {
+      return parents.reduce((acc, curr) => acc + (vf.findNode(curr.source)?.data.value ?? 0), 0)
+    }
+    if (node?.data.type === 'subtract') {
+      return parents.reduce((acc, curr) => acc - (vf.findNode(curr.source)?.data.value ?? 0), 0)
+    }
+    if (node?.data.type === 'multiply') {
+      return parents.reduce((acc, curr) => acc * (vf.findNode(curr.source)?.data.value ?? 0), 0)
+    }
+    if (node?.data.type === 'divide') {
+      return parents.reduce((acc, curr) => acc / (vf.findNode(curr.source)?.data.value ?? 0), 0)
+    }
+    return 0
+  }
+
+  function calculateOutgoingValue(flowId: string, nodeId: string): number {
+    const vf = useVueFlow({ id: flowId })
+    const node = vf.findNode(nodeId)
+    const children = vf.getConnectedEdges(nodeId).filter((edge) => edge.target === nodeId)
+    if (node?.data.type === 'add') {
+      return children.reduce((acc, curr) => acc + (vf.findNode(curr.source)?.data.value ?? 0), 0)
+    }
+    return 0
+  }
+
+  function initializeTensorValues(flowId: string): void {
+    const vf = useVueFlow({ id: flowId })
+    for (const node of basicPerceptronGraphData.value.nodes) {
+      const children = vf.getConnectedEdges(node.id).filter((edge) => edge.source === node.id)
+      const parents = vf.getConnectedEdges(node.id).filter((edge) => edge.target === node.id)
+      const incomingValue = 0
+      const outgoingValue = 0
+      const value = node.data.value
+      const type = node.data.type
+      const label = node.data.label
+      const gradient = 0
+      const layerId = node.data.layer_id
+
+      const baseTensorValue = {
+        id: node.id,
+        type: node.data.type,
+        parents: parents.map((edge) => edge.source),
+        children: children.map((edge) => edge.target),
+        label: node.data.label,
+        layerId: node.data.layer_id,
+      }
+
+      let tensorValue: TensorValue | null = null
+      if (type === 'input' || type === 'weight' || type === 'bias') {
+        const obj = {
+          ...baseTensorValue,
+          incomingValue: incomingValue,
+          value: value,
+          outgoingValue: outgoingValue,
+          gradient: gradient,
+        }
+        tensorValue = obj as ValueTypeTensors
+      } else if (
+        type === 'relu' ||
+        type === 'sigmoid' ||
+        type === 'tanh' ||
+        type === 'softmax' ||
+        type === 'linear'
+      ) {
+        const obj = {
+          ...baseTensorValue,
+          incomingValue: incomingValue,
+          outgoingValue: outgoingValue,
+          gradient: gradient,
+        } as ActivationTypeTensors
+        tensorValue = obj as ActivationTypeTensors
+      } else if (
+        type === 'add' ||
+        type === 'subtract' ||
+        type === 'multiply' ||
+        type === 'divide' ||
+        type === 'dot' ||
+        type === 'matmul' ||
+        type === 'sum'
+      ) {
+        const obj = {
+          ...baseTensorValue,
+          incomingValue: [] as number[],
+          outgoingValue: outgoingValue,
+          gradient: gradient,
+        }
+        tensorValue = obj as OperationTypeTensors
+      } else {
+        const obj = {
+          ...baseTensorValue,
+          incomingValue: incomingValue,
+          outgoingValue: outgoingValue,
+          gradient: gradient,
+        } as LossTypeTensors
+        tensorValue = obj as LossTypeTensors
+      }
+
+      if (tensorValue) {
+        updateOrAddTensorValue(tensorValue)
+      }
+    }
+  }
+
   function updateOrAddTensorValue(payload: TensorValue) {
     tensorValuesMap.value[payload.id] = payload
   }
 
   const layers = ref<Record<number, Layer>>({})
   function addLayerData(payload: LayerPayload) {
-
     const { id, type, prev, next } = payload
     if (layers.value[id]) {
       if (type === 'data') {
@@ -266,6 +393,7 @@ export const useTensorDataStore = defineStore('tensorData', () => {
     getNumberOfLayers,
     calculateLayerValues,
     tensorValuesMap,
+    initializeTensorValues,
     updateOrAddTensorValue,
     addTensorNodeIdIfNotExists,
     basicPerceptronGraphData,
