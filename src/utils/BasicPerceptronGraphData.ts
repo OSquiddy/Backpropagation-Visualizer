@@ -3,78 +3,78 @@ import { Position } from '@vue-flow/core'
 import { ltx } from './LaTeXFormatter'
 
 const initialPosition = { x: 0, y: 0 }
-const initialValue = 0
+const CUSTOM_NODE_TYPE = 'tensor'
 
 export const initialNodes: Node[] = [
   {
     id: '1a',
-    type: 'tensor',
+    type: CUSTOM_NODE_TYPE,
     position: initialPosition,
     sourcePosition: Position.Right,
-    data: { type: 'input', label: ltx('x_1'), value: 2, layer_id: 1 },
+    data: { type: 'input', label: 'x_1', value: 2, layer_id: 1 },
   },
   {
     id: '1b',
-    type: 'tensor',
+    type: CUSTOM_NODE_TYPE,
     position: initialPosition,
     sourcePosition: Position.Right,
-    data: { type: 'input', label: ltx('x_2'), value: 1, layer_id: 1 },
+    data: { type: 'input', label: 'x_2', value: 1, layer_id: 1 },
   },
   {
     id: '1c',
-    type: 'tensor',
+    type: CUSTOM_NODE_TYPE,
     position: initialPosition,
     sourcePosition: Position.Right,
-    data: { type: 'input', label: ltx('x_3'), value: 4, layer_id: 1 },
+    data: { type: 'input', label: 'x_3', value: 4, layer_id: 1 },
   },
 
   {
     id: '2a',
-    type: 'tensor',
+    type: CUSTOM_NODE_TYPE,
     position: initialPosition,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
-    data: { type: 'weight', label: ltx('w_1'), value: 1, layer_id: 1 },
+    data: { type: 'weight', label: 'w_1', value: 1, layer_id: 1 },
   },
   {
     id: '2b',
-    type: 'tensor',
+    type: CUSTOM_NODE_TYPE,
     position: initialPosition,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
-    data: { type: 'weight', label: ltx('w_2'), value:-2, layer_id: 1 },
+    data: { type: 'weight', label: 'w_2', value:-2, layer_id: 1 },
   },
   {
     id: '2c',
-    type: 'tensor',
+    type: CUSTOM_NODE_TYPE,
     position: initialPosition,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
-    data: { type: 'weight', label: ltx('w_3'), value: 3, layer_id: 1 },
+    data: { type: 'weight', label: 'w_3', value: 3, layer_id: 1 },
   },
   {
     id: '3',
-    type: 'tensor',
+    type: CUSTOM_NODE_TYPE,
     position: initialPosition,
     targetPosition: Position.Left,
     sourcePosition: Position.Right,
-    data: { type: 'sum', label: ltx('\\sum'), layer_id: 2 },
+    data: { type: 'sum', label: '\\sum', layer_id: 2 },
   },
   {
     id: '4',
-    type: 'tensor',
+    type: CUSTOM_NODE_TYPE,
     position: initialPosition,
     targetPosition: Position.Left,
     sourcePosition: Position.Right,
-    data: { type: 'sigmoid', label: ltx('\\sigma'), layer_id: 3 },
+    data: { type: 'sigmoid', label: '\\sigma', layer_id: 3 },
   },
   {
     id: '5',
-    type: 'tensor',
+    type: CUSTOM_NODE_TYPE,
     position: initialPosition,
     targetPosition: Position.Left,
     sourcePosition: Position.Right,
-    data: { type: 'loss', label: ltx('L'), layer_id: 4 },
+    data: { type: 'loss', label: 'L', layer_id: 4 },
   },
 ]
 

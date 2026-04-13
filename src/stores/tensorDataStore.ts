@@ -1,5 +1,6 @@
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { defineStore } from 'pinia'
+import type { Node, Edge } from '@vue-flow/core'
 
 export type TensorValue =
   | {
@@ -11,6 +12,7 @@ export type TensorValue =
       parents: string[]
       children: string[]
       gradient: number | null | undefined
+      label: string
     }
   | {
       id: string
@@ -20,6 +22,7 @@ export type TensorValue =
       parents: string[]
       children: string[]
       gradient: number
+      label: string
     }
   | {
       id: string
@@ -29,6 +32,7 @@ export type TensorValue =
       parents: string[]
       children: string[]
       gradient: number
+      label: string
     }
 
 type ValueTypeTensors = Extract<TensorValue, { type: 'input' | 'weight' | 'bias' }>
@@ -74,10 +78,36 @@ export type LayerPayload = {
 }
 
 export const useTensorDataStore = defineStore('tensorData', () => {
+
+  const basicPerceptronGraphData = shallowRef<{ nodes: Node[], edges: Edge[] }>({
+    nodes: [],
+    edges: []
+  })
+
+  function initializeBasicPerceptronGraphData(nodes: Node[], edges: Edge[]) {
+    basicPerceptronGraphData.value = { nodes, edges }
+    for (const node of nodes) {
+      addTensorNodeIdIfNotExists(node.id)
+    }
+  }
+
+  function updateBasicPerceptronGraphData(nodes: Node[], edges: Edge[]) {
+    basicPerceptronGraphData.value = {
+      nodes: nodes ?? basicPerceptronGraphData.value.nodes,
+      edges: edges ?? basicPerceptronGraphData.value.edges
+    }
+  }
+
   const tensorValuesMap = ref<Record<string, TensorValue>>({})
 
-  function addTensorValue(tensorValue: TensorValue) {
-    tensorValuesMap.value[tensorValue.id] = tensorValue
+  function addTensorNodeIdIfNotExists(payload: string) {
+    if (!tensorValuesMap.value[payload]) {
+      tensorValuesMap.value[payload] = {} as TensorValue
+    }
+  }
+
+  function updateOrAddTensorValue(payload: TensorValue) {
+    tensorValuesMap.value[payload.id] = payload
   }
 
   const layers = ref<Record<number, Layer>>({})
@@ -230,12 +260,16 @@ export const useTensorDataStore = defineStore('tensorData', () => {
   }
 
   return {
-    tensorValuesMap,
     $reset,
-    addTensorValue,
-    addLayerData,
     layers,
+    addLayerData,
     getNumberOfLayers,
     calculateLayerValues,
+    tensorValuesMap,
+    updateOrAddTensorValue,
+    addTensorNodeIdIfNotExists,
+    basicPerceptronGraphData,
+    initializeBasicPerceptronGraphData,
+    updateBasicPerceptronGraphData,
   }
 })
