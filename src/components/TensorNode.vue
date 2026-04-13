@@ -3,8 +3,8 @@ import { Handle, Position } from '@vue-flow/core'
 import { computed, watch } from 'vue'
 import { useTensorDataStore } from '@/stores/tensorDataStore'
 import { storeToRefs } from 'pinia'
-import type { OperationTypeTensors, LossTypeTensors, ActivationTypeTensors, ValueTypeTensors } from '@/stores/tensorDataStore'
-import type { LayerPayload } from '@/stores/tensorDataStore'
+import type { OperationTypeTensors, LossTypeTensors, ActivationTypeTensors, ValueTypeTensors } from '@/types/Tensor.type'
+import type { LayerPayload } from '@/types/Layer.type'
 import { ltx } from '@/utils/LaTeXFormatter'
 
 const props = defineProps<{
@@ -92,7 +92,6 @@ if (layerType.value === 'data') {
 addLayerData(layerDataPayload)
 
 // watch(layers, (newVal) => {
-//   console.log('Layers updated:', newVal)
 // }, { deep: true })
 
 const formattedLabel = computed(() => {

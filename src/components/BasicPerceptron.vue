@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, nextTick, computed, watch, shallowRef } from 'vue'
-import type { Node, Edge } from '@vue-flow/core'
+import { nextTick, shallowRef } from 'vue'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import TensorNode from './TensorNode.vue'
 import { useLayout } from '@/utils/useLayout'
@@ -8,20 +7,12 @@ import CustomEdge from './CustomEdge.vue'
 import { useTensorDataStore } from '@/stores/tensorDataStore'
 import { initialNodes, initialEdges } from '@/utils/BasicPerceptronGraphData'
 import { storeToRefs } from 'pinia'
+
 const tensorDataStore = useTensorDataStore()
-const { getNumberOfLayers, calculateLayerValues, initializeBasicPerceptronGraphData, updateBasicPerceptronGraphData, initializeTensorValues } = tensorDataStore
+const { initializeBasicPerceptronGraphData, updateBasicPerceptronGraphData, initializeTensorValues } = tensorDataStore
 const { basicPerceptronGraphData } = storeToRefs(tensorDataStore)
 
 const flowId = 'basic-perceptron'
-
-// const numberOfLayers = computed(() => getNumberOfLayers())
-
-// watch(numberOfLayers, (newVal: number) => {
-//   for (let i = 1; i <= newVal; i++) {
-//     calculateLayerValues(i)
-//   }
-// })
-
 const { layout } = useLayout(flowId)
 const { fitView } = useVueFlow({ id: flowId })
 
