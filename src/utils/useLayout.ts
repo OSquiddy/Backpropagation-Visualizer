@@ -1,5 +1,5 @@
 import dagre from '@dagrejs/dagre'
-import { useVueFlow } from '@vue-flow/core'
+import { Position, useVueFlow } from '@vue-flow/core'
 import type { Node, Edge } from '@vue-flow/core'
 import { ref } from 'vue'
 
@@ -32,7 +32,7 @@ export function useLayout(flowId: string) {
 
     dagre.layout(dagreGraph)
 
-    return nodes.map((node) => {
+    const mappedNodes: Node[] = nodes.map((node) => {
       const nodeWithPosition = dagreGraph.node(node.id)
 
       return {
@@ -45,6 +45,20 @@ export function useLayout(flowId: string) {
         },
       }
     })
+
+    const lossNode = mappedNodes.find((node) => node.data.type === 'binary_cross_entropy')
+    const groundTruthNode = mappedNodes.find((node) => node.data.type === 'ground_truth')
+    const lossOutputNode = mappedNodes.find((node) => node.data.type === 'loss_output')
+
+    if (lossNode && groundTruthNode) {
+      lossNode.position.y -= 50
+      lossOutputNode!.position.y -= 50
+      groundTruthNode.position.x = lossNode.position.x
+      groundTruthNode.sourcePosition = Position.Top
+      lossNode.targetPosition = Position.Bottom
+    }
+
+    return mappedNodes
   }
 
   return { graph, layout }

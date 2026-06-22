@@ -3,18 +3,23 @@ import { useTensorDataStore } from '@/stores/tensorDataStore'
 import { storeToRefs } from 'pinia'
 import { useModel } from '@/utils/useModel'
 
-const tensorDataStore = useTensorDataStore()
-const { perceptronLayerMap, perceptronStateHistory, tensorValuesMap } = storeToRefs(tensorDataStore)
-const { addToPerceptronStateHistory, resetPerceptronStateHistory } = tensorDataStore
 
 export function useVisualizer(id: string) {
+  const tensorDataStore = useTensorDataStore()
+  const { perceptronLayerMap, perceptronStateHistory, tensorValuesMap } = storeToRefs(tensorDataStore)
+  const { addToPerceptronStateHistory, resetPerceptronStateHistory } = tensorDataStore
 
   const model = useModel(id)
 
   function play(layerId: number): void {
+    // console.log('play', layerId)
+    resetPerceptronStateHistory()
     for (let i = layerId; i < Object.keys(perceptronLayerMap.value).length; i++) {
-      const history: History = model.forwardPass(i)
-      addToPerceptronStateHistory(history)
+      console.log('i', i)
+      const history: History | undefined = model.forwardPass(i)
+      if (history) {
+        addToPerceptronStateHistory(history)
+      }
     }
   }
 

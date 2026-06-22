@@ -1,8 +1,8 @@
-import type { Tensor } from './Tensor.type'
+import type { TensorType } from './Tensor.type'
 
 export type History = {
   step: number
   type: 'forward' | 'backward'
-  updatedTensors: Tensor[]
-  all: Tensor[]
+  updatedTensors: TensorType[]
+  all: TensorType[]
 }

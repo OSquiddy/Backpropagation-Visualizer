@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Handle, Position } from '@vue-flow/core'
-import { computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useTensorDataStore } from '@/stores/tensorDataStore'
 import { storeToRefs } from 'pinia'
 import type { OperationTypeTensors, LossTypeTensors, ActivationTypeTensors, ValueTypeTensors } from '@/types/Tensor.type'
@@ -11,11 +11,11 @@ const props = defineProps<{
   id: string,
   sourcePosition: Position | undefined
   targetPosition: Position | undefined
+  data: any
 }>()
 
 const tensorValuesStore = useTensorDataStore()
-const { layers, tensorValuesMap } = storeToRefs(tensorValuesStore)
-const { addLayerData } = tensorValuesStore
+const { tensorValuesMap } = storeToRefs(tensorValuesStore)
 
 const currentNode = computed(() => {
   return tensorValuesMap.value[props.id]
@@ -48,6 +48,8 @@ const layerSubType = computed(() => {
       return 'weights'
     case 'bias':
       return 'biases'
+    case 'loss_output':
+      return 'loss_output'
     default:
       return type
   }
@@ -89,10 +91,6 @@ if (layerType.value === 'data') {
   } as OperationTypeTensors | LossTypeTensors | ActivationTypeTensors
 }
 
-addLayerData(layerDataPayload)
-
-// watch(layers, (newVal) => {
-// }, { deep: true })
 
 const formattedLabel = computed(() => {
   if (currentNode.value!.label) {
@@ -100,13 +98,13 @@ const formattedLabel = computed(() => {
   }
   return ''
 })
-
 </script>
 
 <template>
   <div class="tensor-node" :class="[currentNode!.type]">
     <span class="label" v-html="formattedLabel"></span>
     <span class="value">{{ (currentNode! as ValueTypeTensors).value }}</span>
+    <Handle v-for="handle in data.handles" :key="handle.id" :id="handle.id" :type="handle.type" :position="handle.position" />
     <Handle v-if="targetPosition" type="target" :position="targetPosition" />
     <Handle v-if="sourcePosition" type="source" :position="sourcePosition" />
   </div>
@@ -126,6 +124,10 @@ const formattedLabel = computed(() => {
   .label {
     margin-bottom: 2px;
   }
+}
+
+.tensor-node.loss_output {
+  border: none;
 }
 
 .tensor-node.input {

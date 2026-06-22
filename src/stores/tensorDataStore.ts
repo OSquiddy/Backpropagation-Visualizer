@@ -5,11 +5,12 @@ import { useVueFlow } from '@vue-flow/core'
 import type { Layer, LayerPayload, PerceptronLayer } from '@/types/Layer.type'
 import type { History } from '@/types/History.type'
 import type {
-  Tensor,
   ValueTypeTensors,
   OperationTypeTensors,
   LossTypeTensors,
   ActivationTypeTensors,
+  BaseTensorType,
+  TensorType,
 } from '@/types/Tensor.type'
 
 export const useTensorDataStore = defineStore('tensorData', () => {
@@ -42,11 +43,11 @@ export const useTensorDataStore = defineStore('tensorData', () => {
     }
   }
 
-  const tensorValuesMap = ref<Record<string, Tensor>>({})
+  const tensorValuesMap = ref<Record<string, TensorType>>({})
 
   function addTensorNodeIdIfNotExists(payload: string) {
     if (!tensorValuesMap.value[payload]) {
-      tensorValuesMap.value[payload] = {} as Tensor
+      tensorValuesMap.value[payload] = {} as TensorType
     }
   }
 
@@ -98,13 +99,13 @@ export const useTensorDataStore = defineStore('tensorData', () => {
       const baseTensorValue = {
         id: node.id,
         type: node.data.type,
-        parents: parents.map((edge) => edge.source),
-        children: children.map((edge) => edge.target),
+        parents: parents.map((edge) => { return { id: edge.source, type: edge.sourceNode.data.type } }),
+        children: children.map((edge) => { return { id: edge.target, type: edge.targetNode.data.type } }),
         label: node.data.label,
         layerId: node.data.layer_id,
       }
 
-      let tensorValue: Tensor | null = null
+      let tensorValue: BaseTensorType | null = null
       if (type === 'input' || type === 'weight' || type === 'bias') {
         const obj = {
           ...baseTensorValue,
@@ -139,7 +140,7 @@ export const useTensorDataStore = defineStore('tensorData', () => {
       ) {
         const obj = {
           ...baseTensorValue,
-          incomingValue: [] as number[],
+          incomingValue: [] as TensorType[],
           outgoingValue: outgoingValue,
           gradient: gradient,
         }
@@ -160,72 +161,47 @@ export const useTensorDataStore = defineStore('tensorData', () => {
     }
   }
 
-  function updateOrAddTensorValue(payload: Tensor) {
+  function updateOrAddTensorValue(payload: TensorType) {
     tensorValuesMap.value[payload.id] = payload
   }
 
-  const layers = ref<Record<number, Layer>>({})
-  function addLayerData(payload: LayerPayload) {
-    // const { id, type, prev, next } = payload
-    // if (layers.value[id]) {
-    //   if (type === 'data') {
-    //     const { inputs, weights, biases } = payload
-    //     const layer: DataTypeLayer = layers.value[id] as DataTypeLayer
-    //     if (inputs && inputs.id) layer.inputs[inputs.id] = inputs as Tensor
-    //     if (weights && weights.id) layer.weights[weights.id] = weights as Tensor
-    //     if (biases && biases.id) layer.biases[biases.id] = biases as Tensor
-    //   } else {
-    //     const { data } = payload
-    //     const layer: OperationTypeLayer = layers.value[id] as OperationTypeLayer
-    //     layer.data[data!.id] = data!
-    //   }
-    // } else {
-    //   if (type === 'data') {
-    //     const { inputs, weights, biases } = payload
-    //     const layer: DataTypeLayer = {
-    //       id: id,
-    //       type: type,
-    //       prev: prev,
-    //       next: next,
-    //       inputs: {} as Record<string, Tensor>,
-    //       weights: {} as Record<string, Tensor>,
-    //       biases: {} as Record<string, Tensor>,
-    //     }
-    //     if (inputs && inputs.id) layer.inputs[inputs.id] = inputs as Tensor
-    //     if (weights && weights.id) layer.weights[weights.id] = weights as Tensor
-    //     if (biases && biases.id) layer.biases[biases.id] = biases as Tensor
-    //     layers.value[id] = layer
-    //   } else {
-    //     const { data } = payload
-    //     const layer: OperationTypeLayer = {
-    //       id: id,
-    //       type: type,
-    //       prev: prev,
-    //       next: next,
-    //       data: {} as Record<string, Tensor>,
-    //     }
-    //     layer.data[data!.id] = data!
-    //     layers.value[id] = layer
-    //   }
-    // }
-  }
-
-  function getNumberOfLayers() {
-    return Object.keys(layers.value).length
-  }
-
+  
   const perceptronLayerMap = ref<Record<number, PerceptronLayer>>({})
 
   function initializePerceptronLayerMap() {
     for (const tensor of Object.values(tensorValuesMap.value)) {
       let layerType;
-      if (tensor.type === 'input' || tensor.type === 'weight' || tensor.type === 'bias') {
+      if (
+        tensor.type === 'input' ||
+        tensor.type === 'weight' ||
+        tensor.type === 'bias' ||
+        tensor.type === 'ground-truth'
+      ) {
         layerType = 'data'
-      } else if (tensor.type === 'relu' || tensor.type === 'sigmoid' || tensor.type === 'tanh' || tensor.type === 'softmax' || tensor.type === 'linear') {
+      } else if (
+        tensor.type === 'relu' ||
+        tensor.type === 'sigmoid' ||
+        tensor.type === 'tanh' ||
+        tensor.type === 'softmax' ||
+        tensor.type === 'linear'
+      ) {
         layerType = 'activation'
-      } else if (tensor.type === 'add' || tensor.type === 'subtract' || tensor.type === 'multiply' || tensor.type === 'divide' || tensor.type === 'dot' || tensor.type === 'matmul' || tensor.type === 'sum') {
+      } else if (
+        tensor.type === 'add' ||
+        tensor.type === 'subtract' ||
+        tensor.type === 'multiply' ||
+        tensor.type === 'divide' ||
+        tensor.type === 'dot' ||
+        tensor.type === 'matmul' ||
+        tensor.type === 'sum'
+      ) {
         layerType = 'operation'
-      } else if (tensor.type === 'cross_entropy' || tensor.type === 'mean_squared_error' || tensor.type === 'mean_absolute_error') {
+      } else if (
+        tensor.type === 'cross_entropy' ||
+        tensor.type === 'mean_squared_error' ||
+        tensor.type === 'mean_absolute_error' ||
+        tensor.type === 'binary_cross_entropy'
+      ) {
         layerType = 'loss'
       }
 
@@ -276,111 +252,10 @@ export const useTensorDataStore = defineStore('tensorData', () => {
     }
   }
 
-
-  // function calculateLayerValues(layerId: number): void {
-  //   const layer = layers.value[layerId]
-  //   if (!layer) return
-
-  //   // console.log(layer)
-  //   if (layer.type === 'data') {
-  //     layer as DataTypeLayer
-  //     const { inputs, weights, biases } = layer
-
-  //     if (Object.keys(inputs).length > 0) {
-  //       for (const input of Object.values(inputs) as ValueTypeTensors[]) {
-  //         layer.inputs[input.id]!.outgoingValue = input.value
-
-  //         // Calculate incoming values for weight tensors that are children of this input tensor
-  //         const children = input.children
-  //         for (const child of children) {
-  //           const childNode = layer.weights[child] as ValueTypeTensors
-  //           if (childNode) {
-  //             childNode.incomingValue = input.value
-  //             childNode.outgoingValue = input.value * childNode.value
-  //           }
-  //         }
-  //       }
-  //     }
-  //   } else {
-  //     layer as OperationTypeLayer
-  //     const { data } = layer
-
-  //     if (Object.keys(data).length > 0) {
-  //       // Calculate incoming values for operation tensors
-  //       if (layer.type === 'operation') {
-  //         type OperationTypeTensors = Extract<
-  //           Tensor,
-  //           { type: 'add' | 'subtract' | 'multiply' | 'divide' | 'dot' | 'matmul' | 'sum' }
-  //         >
-  //         for (const operation of Object.values(data) as OperationTypeTensors[]) {
-  //           const op = layer.data[operation.id]! as OperationTypeTensors
-  //           op.incomingValue = [] as number[]
-
-  //           const parents = op.parents
-  //           for (const parent of parents) {
-  //             const parentLayer = layers.value[layer.prev!] as DataTypeLayer
-  //             if (parentLayer) {
-  //               const parentNode = parentLayer.weights[parent] as ValueTypeTensors
-  //               if (parentNode) {
-  //                 op.incomingValue.push(parentNode.outgoingValue!)
-  //               }
-  //             }
-  //           }
-
-  //           // Calculate outgoing values for operation tensors
-  //           if (op.type === 'add' || op.type === 'sum') {
-  //             op.outgoingValue = op.incomingValue.reduce((acc, curr) => acc + curr, 0)
-  //           } else if (op.type === 'subtract') {
-  //             op.outgoingValue = op.incomingValue.reduce((acc, curr) => acc - curr, 0)
-  //           } else if (op.type === 'multiply') {
-  //             op.outgoingValue = op.incomingValue.reduce((acc, curr) => acc * curr, 0)
-  //           } else if (op.type === 'divide') {
-  //             op.outgoingValue = op.incomingValue.reduce((acc, curr) => acc / curr, 0)
-  //           }
-  //         }
-  //       }
-
-  //       if (layer.type === 'activation') {
-  //         // Calculate incoming values for activation tensors
-  //         type ActivationTypeTensors = Extract<
-  //           Tensor,
-  //           { type: 'relu' | 'sigmoid' | 'tanh' | 'softmax' | 'linear' }
-  //         >
-  //         for (const activation of Object.values(layer.data) as ActivationTypeTensors[]) {
-  //           const activationNode = layer.data[activation.id]! as ActivationTypeTensors
-  //           activationNode.incomingValue = 0
-
-  //           const parents = activationNode.parents
-  //           for (const parent of parents) {
-  //             const parentLayer = layers.value[layer.prev!] as Layer
-  //             if (parentLayer.type === 'data') {
-  //               const parentNode = parentLayer.weights[parent] as ValueTypeTensors
-  //               if (parentNode) {
-  //                 activationNode.incomingValue += parentNode.outgoingValue!
-  //               }
-  //             } else {
-  //               const parentNode = parentLayer.data[parent] as OperationTypeTensors
-  //               if (parentNode) {
-  //                 activationNode.incomingValue += parentNode.outgoingValue!
-  //               }
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //   }
-
-  //   // console.log('Updated layer:', layer)
-  // }
-
   function $reset() {}
 
   return {
     $reset,
-    layers,
-    addLayerData,
-    getNumberOfLayers,
-    // calculateLayerValues,
     tensorValuesMap,
     initializeTensorValues,
     updateOrAddTensorValue,
