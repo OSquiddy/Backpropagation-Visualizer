@@ -1,10 +1,24 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
+import { computed, onUpdated } from 'vue'
 import { type EdgeProps, BaseEdge, EdgeLabelRenderer, getBezierPath } from '@vue-flow/core'
+import { useTensorDataStore } from '@/stores/tensorDataStore'
+import { storeToRefs } from 'pinia'
+import { ltx } from '@/utils/LaTeXFormatter'
+
+const tensorDataStore = useTensorDataStore()
+const { tensorValuesMap } = storeToRefs(tensorDataStore)
+
+
 
 const props = defineProps<Partial<EdgeProps>>()
-
 const path = computed(() => getBezierPath(props as EdgeProps))
+
+const edgeLabel = computed(() => {
+  const edgeString = props.source && tensorValuesMap.value[props.source]?.outgoingValue ? props.data.label ? `${props.data.label} =  ${(tensorValuesMap.value[props.source]?.outgoingValue as number).toFixed(1)}` : props.data.label : ''
+  return edgeString ? ltx(edgeString) : ''
+})
+
+
 </script>
 
 <script lang="ts">
@@ -25,7 +39,7 @@ export default {
       position: 'absolute',
       transform: `translate(-50%, -50%) translate(${path[1]}px,${path[2]}px)`,
     }" class="nodrag nopan custom-edge-label-backdrop">
-      <div class="custom-edge-label" v-html="props.data.katexLabel"></div>
+      <div class="custom-edge-label" v-html="edgeLabel"></div>
     </div>
   </EdgeLabelRenderer>
 </template>

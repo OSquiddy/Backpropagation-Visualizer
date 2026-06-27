@@ -127,6 +127,7 @@ export const initialEdges: Edge[] = [
     target: '3',
     data: {
       katexLabel: ltx('w_1x_1'),
+      label: 'w_1x_1'
     }
   },
   {
@@ -135,6 +136,7 @@ export const initialEdges: Edge[] = [
     target: '3',
     data: {
       katexLabel: ltx('w_2x_2'),
+      label: 'w_2x_2'
     }
   },
   {
@@ -143,6 +145,7 @@ export const initialEdges: Edge[] = [
     target: '3',
     data: {
       katexLabel: ltx('w_3x_3'),
+      label: 'w_3x_3'
     }
   },
   {
@@ -151,6 +154,7 @@ export const initialEdges: Edge[] = [
     target: '3',
     data: {
       katexLabel: ltx('b'),
+      label: 'b'
     }
   },
   {
@@ -159,6 +163,7 @@ export const initialEdges: Edge[] = [
     target: '4',
     data: {
       katexLabel: ltx('z'),
+      label: 'z'
     }
   },
   {
@@ -168,6 +173,7 @@ export const initialEdges: Edge[] = [
     targetHandle: 'target-left',
     data: {
       katexLabel: ltx('a'),
+      label: 'a'
     }
   },
   {
@@ -177,6 +183,7 @@ export const initialEdges: Edge[] = [
     targetHandle: 'target-bottom',
     data: {
       katexLabel: ltx('y'),
+      label: 'y'
     }
   },
   {
@@ -186,6 +193,7 @@ export const initialEdges: Edge[] = [
     targetHandle: 'target-left',
     data: {
       katexLabel: ltx('L'),
+      label: 'L'
     }
   }
 ]
