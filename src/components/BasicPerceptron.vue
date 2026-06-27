@@ -8,6 +8,7 @@ import { useTensorDataStore } from '@/stores/tensorDataStore'
 import { initialNodes, initialEdges } from '@/utils/BasicPerceptronGraphData'
 import { storeToRefs } from 'pinia'
 import { useVisualizer } from '@/utils/useVisualizer'
+import VisualizerControls from './VisualizerControls.vue'
 
 const tensorDataStore = useTensorDataStore()
 const { initializeBasicPerceptronGraphData, updateBasicPerceptronGraphData, initializeTensorValues, initializePerceptronLayerMap } = tensorDataStore
@@ -38,6 +39,7 @@ onUpdated(() => {
 
 <template>
   <div class="basic-perceptron-container">
+    <VisualizerControls />
     <VueFlow :id="flowId" :nodes="basicPerceptronGraphData.nodes" :edges="basicPerceptronGraphData.edges"
       @nodes-initialized="layoutGraph" :default-edge-options="{ type: 'custom', animated: true, }" fit-view-on-init>
       <template #node-tensor="node">
@@ -59,5 +61,7 @@ onUpdated(() => {
   width: 100%;
   height: 400px;
   background-color: white;
+  border: 1px solid #ccc;
+  position: relative;
 }
 </style>
