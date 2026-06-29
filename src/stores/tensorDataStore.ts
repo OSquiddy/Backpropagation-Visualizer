@@ -2,7 +2,7 @@ import { ref, shallowRef } from 'vue'
 import { defineStore } from 'pinia'
 import type { Node, Edge } from '@vue-flow/core'
 import { useVueFlow } from '@vue-flow/core'
-import type { Layer, LayerPayload, PerceptronLayer } from '@/types/Layer.type'
+import type { PerceptronLayer } from '@/types/Layer.type'
 import type { History } from '@/types/History.type'
 import type {
   ValueTypeTensors,
@@ -51,38 +51,6 @@ export const useTensorDataStore = defineStore('tensorData', () => {
     }
   }
 
-  function calculateIncomingValue(flowId: string, nodeId: string): number {
-    const vf = useVueFlow(flowId)
-    const node = vf.findNode(nodeId)
-    const parents = vf.getConnectedEdges(nodeId).filter((edge) => edge.target === nodeId)
-    if (node?.data.type === 'sum') {
-      return parents.reduce((acc, curr) => acc + (vf.findNode(curr.source)?.data.value ?? 0), 0)
-    }
-    if (node?.data.type === 'add') {
-      return parents.reduce((acc, curr) => acc + (vf.findNode(curr.source)?.data.value ?? 0), 0)
-    }
-    if (node?.data.type === 'subtract') {
-      return parents.reduce((acc, curr) => acc - (vf.findNode(curr.source)?.data.value ?? 0), 0)
-    }
-    if (node?.data.type === 'multiply') {
-      return parents.reduce((acc, curr) => acc * (vf.findNode(curr.source)?.data.value ?? 0), 0)
-    }
-    if (node?.data.type === 'divide') {
-      return parents.reduce((acc, curr) => acc / (vf.findNode(curr.source)?.data.value ?? 0), 0)
-    }
-    return 0
-  }
-
-  function calculateOutgoingValue(flowId: string, nodeId: string): number {
-    const vf = useVueFlow(flowId)
-    const node = vf.findNode(nodeId)
-    const children = vf.getConnectedEdges(nodeId).filter((edge) => edge.target === nodeId)
-    if (node?.data.type === 'add') {
-      return children.reduce((acc, curr) => acc + (vf.findNode(curr.source)?.data.value ?? 0), 0)
-    }
-    return 0
-  }
-
   function initializeTensorValues(flowId: string): void {
     const vf = useVueFlow(flowId)
     for (const node of basicPerceptronGraphData.value.nodes) {
@@ -101,8 +69,12 @@ export const useTensorDataStore = defineStore('tensorData', () => {
       const baseTensorValue = {
         id: node.id,
         type: node.data.type,
-        parents: parents.map((edge) => { return { id: edge.source, type: edge.sourceNode.data.type } }),
-        children: children.map((edge) => { return { id: edge.target, type: edge.targetNode.data.type } }),
+        parents: parents.map((edge) => {
+          return { id: edge.source, type: edge.sourceNode.data.type }
+        }),
+        children: children.map((edge) => {
+          return { id: edge.target, type: edge.targetNode.data.type }
+        }),
         label: node.data.label,
         layerId: node.data.layer_id,
       }
@@ -175,12 +147,11 @@ export const useTensorDataStore = defineStore('tensorData', () => {
     tensorValuesMap.value[payload.id] = payload
   }
 
-
   const perceptronLayerMap = ref<Record<number, PerceptronLayer>>({})
 
   function initializePerceptronLayerMap() {
     for (const tensor of Object.values(tensorValuesMap.value)) {
-      let layerType;
+      let layerType
       if (
         tensor.type === 'input' ||
         tensor.type === 'weight' ||
@@ -223,10 +194,12 @@ export const useTensorDataStore = defineStore('tensorData', () => {
 
       addToOrUpdatePerceptronLayerMap(tensor.layerId, tensor.id)
     }
-
   }
 
-  function addLayerToPerceptronLayerMap(layerId: number, payload: Omit<PerceptronLayer, 'tensorIds'>) {
+  function addLayerToPerceptronLayerMap(
+    layerId: number,
+    payload: Omit<PerceptronLayer, 'tensorIds'>,
+  ) {
     if (!perceptronLayerMap.value[layerId]) {
       perceptronLayerMap.value[layerId] = {
         tensorIds: new Set<string>(),
