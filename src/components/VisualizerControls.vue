@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useVisualizer } from '@/utils/useVisualizer'
+import { useInjectedVisualizer } from '@/utils/useVisualizer'
 
-const visualizer = useVisualizer('basic-perceptron')
+const visualizer = useInjectedVisualizer()
 
 function play() {
   visualizer.play(1)

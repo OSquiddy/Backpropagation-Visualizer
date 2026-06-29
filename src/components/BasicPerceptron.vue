@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onUpdated, shallowRef } from 'vue'
+import { nextTick, provide, shallowRef } from 'vue'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import TensorNode from './TensorNode.vue'
 import { useLayout } from '@/utils/useLayout'
@@ -7,7 +7,7 @@ import CustomEdge from './CustomEdge.vue'
 import { useTensorDataStore } from '@/stores/tensorDataStore'
 import { initialNodes, initialEdges } from '@/utils/BasicPerceptronGraphData'
 import { storeToRefs } from 'pinia'
-import { useVisualizer } from '@/utils/useVisualizer'
+import { useVisualizer, visualizerKey } from '@/utils/useVisualizer'
 import VisualizerControls from './VisualizerControls.vue'
 
 const tensorDataStore = useTensorDataStore()
@@ -18,7 +18,7 @@ const flowId = 'basic-perceptron'
 const { layout } = useLayout(flowId)
 const { fitView } = useVueFlow(flowId)
 const visualizer = useVisualizer(flowId)
-
+provide(visualizerKey, visualizer)
 
 initializeBasicPerceptronGraphData(initialNodes, initialEdges)
 
@@ -32,9 +32,6 @@ function layoutGraph() {
   })
 }
 
-onUpdated(() => {
-  visualizer.play(1)
-})
 </script>
 
 <template>

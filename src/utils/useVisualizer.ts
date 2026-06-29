@@ -3,7 +3,10 @@ import { useTensorDataStore } from '@/stores/tensorDataStore'
 import { storeToRefs } from 'pinia'
 import { useModel } from '@/utils/useModel'
 import { useVueFlow } from '@vue-flow/core'
+import { inject, type InjectionKey } from 'vue'
 
+export type VisualizerApi = ReturnType<typeof useVisualizer>
+export const visualizerKey: InjectionKey<VisualizerApi> = Symbol('visualizer')
 
 export function useVisualizer(id: string) {
   const tensorDataStore = useTensorDataStore()
@@ -50,13 +53,14 @@ export function useVisualizer(id: string) {
         addToPerceptronStateHistory(history)
       }
     }
+    model.updateWeights(1)
   }
 
   function pause(layerId: number): void {}
 
   function restart(): void {
     resetPerceptronStateHistory()
-    void play(0)
+    void play(1)
   }
 
   function stepForward(): void {}
@@ -128,4 +132,12 @@ export function useVisualizer(id: string) {
     stepForward,
     stepBackward,
   }
+}
+
+export function useInjectedVisualizer(): VisualizerApi {
+  const visualizer = inject(visualizerKey)
+  if (!visualizer) {
+    throw new Error('useInjectedVisualizer must be used within a visualizer provider')
+  }
+  return visualizer
 }
