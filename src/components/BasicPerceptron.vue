@@ -41,7 +41,7 @@ onUpdated(() => {
   <div class="basic-perceptron-container">
     <VisualizerControls />
     <VueFlow :id="flowId" :nodes="basicPerceptronGraphData.nodes" :edges="basicPerceptronGraphData.edges"
-      @nodes-initialized="layoutGraph" :default-edge-options="{ type: 'custom', animated: true, }" fit-view-on-init>
+      @nodes-initialized="layoutGraph" :default-edge-options="{ type: 'custom', animated: false, }" fit-view-on-init>
       <template #node-tensor="node">
         <TensorNode :id="node.id" :source-position="node.sourcePosition" :target-position="node.targetPosition" :data="node.data" />
       </template>

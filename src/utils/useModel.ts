@@ -75,9 +75,9 @@ export function useModel(id?: string) {
         continue
       }
 
-      if (tensor.type === 'ground-truth') {
-        continue
-      }
+      // if (tensor.type === 'ground-truth') {
+      //   continue
+      // }
 
       tensor.gradient = ModelUtils.calculateGradient(tensor)
       // console.log('Tensor', tensor, 'gradient', tensor.gradient)

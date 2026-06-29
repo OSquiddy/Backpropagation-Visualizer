@@ -34,7 +34,7 @@ export const initialNodes: Node[] = [
     position: initialPosition,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
-    data: { type: 'weight', label: 'w_1', value: 1, layer_id: 1 },
+    data: { type: 'weight', label: 'w_1', value: 1, layer_id: 2 },
   },
   {
     id: '2b',
@@ -42,7 +42,7 @@ export const initialNodes: Node[] = [
     position: initialPosition,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
-    data: { type: 'weight', label: 'w_2', value:-2, layer_id: 1 },
+    data: { type: 'weight', label: 'w_2', value:-2, layer_id: 2 },
   },
   {
     id: '2c',
@@ -50,17 +50,7 @@ export const initialNodes: Node[] = [
     position: initialPosition,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
-    data: { type: 'weight', label: 'w_3', value: 3, layer_id: 1 },
-  },
-  {
-    id: '3',
-    type: CUSTOM_NODE_TYPE,
-    position: initialPosition,
-    sourcePosition: Position.Right,
-    data: { type: 'sum', label: '\\sum', layer_id: 2, handles: [
-      { id: 'target-left', type: 'target', position: Position.Left },
-      { id: 'target-top', type: 'target', position: Position.Top },
-    ] },
+    data: { type: 'weight', label: 'w_3', value: 3, layer_id: 2 },
   },
   {
     id: '3a',
@@ -68,7 +58,17 @@ export const initialNodes: Node[] = [
     position: initialPosition,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
-    data: { type: 'bias', label: 'b', value: 2, layer_id: 1 },
+    data: { type: 'bias', label: 'b', value: 2, layer_id: 2 },
+  },
+  {
+    id: '3',
+    type: CUSTOM_NODE_TYPE,
+    position: initialPosition,
+    sourcePosition: Position.Right,
+    data: { type: 'sum', label: '\\sum', layer_id: 3, handles: [
+      { id: 'target-left', type: 'target', position: Position.Left },
+      { id: 'target-top', type: 'target', position: Position.Top },
+    ] },
   },
   {
     id: '4',
@@ -76,14 +76,14 @@ export const initialNodes: Node[] = [
     position: initialPosition,
     targetPosition: Position.Left,
     sourcePosition: Position.Right,
-    data: { type: 'sigmoid', label: '\\sigma', layer_id: 3, },
+    data: { type: 'sigmoid', label: '\\sigma', layer_id: 4, },
   },
   {
     id: '5',
     type: CUSTOM_NODE_TYPE,
     position: initialPosition,
     sourcePosition: Position.Right,
-    data: { type: 'binary_cross_entropy', label: 'BCE', layer_id: 4, handles: [
+    data: { type: 'binary_cross_entropy', label: 'BCE', layer_id: 5, handles: [
       { id: 'target-left', type: 'target', position: Position.Left },
       { id: 'target-bottom', type: 'target', position: Position.Bottom },
     ] },
@@ -93,13 +93,13 @@ export const initialNodes: Node[] = [
     type: CUSTOM_NODE_TYPE,
     position: initialPosition,
     sourcePosition: Position.Top,
-    data: { type: 'ground_truth', label: 'y', layer_id: 4 },
+    data: { type: 'ground_truth', label: 'y', layer_id: 5 },
   },
   {
     id: '7',
     type: CUSTOM_NODE_TYPE,
     position: initialPosition,
-    data: { type: 'loss_output', layer_id: 5, handles: [
+    data: { type: 'loss_output', layer_id: 6, handles: [
       { id: 'target-left', type: 'target', position: Position.Left },
     ] },
   }
@@ -127,7 +127,9 @@ export const initialEdges: Edge[] = [
     target: '3',
     data: {
       katexLabel: ltx('w_1x_1'),
-      label: 'w_1x_1'
+      label: 'w_1x_1',
+      isAnimating: false,
+      flowId: 'basic-perceptron'
     }
   },
   {
@@ -136,7 +138,9 @@ export const initialEdges: Edge[] = [
     target: '3',
     data: {
       katexLabel: ltx('w_2x_2'),
-      label: 'w_2x_2'
+      label: 'w_2x_2',
+      isAnimating: false,
+      flowId: 'basic-perceptron'
     }
   },
   {
@@ -145,7 +149,9 @@ export const initialEdges: Edge[] = [
     target: '3',
     data: {
       katexLabel: ltx('w_3x_3'),
-      label: 'w_3x_3'
+      label: 'w_3x_3',
+      isAnimating: false,
+      flowId: 'basic-perceptron'
     }
   },
   {
@@ -154,7 +160,9 @@ export const initialEdges: Edge[] = [
     target: '3',
     data: {
       katexLabel: ltx('b'),
-      label: 'b'
+      label: 'b',
+      isAnimating: false,
+      flowId: 'basic-perceptron'
     }
   },
   {
@@ -163,7 +171,9 @@ export const initialEdges: Edge[] = [
     target: '4',
     data: {
       katexLabel: ltx('z'),
-      label: 'z'
+      label: 'z',
+      isAnimating: false,
+      flowId: 'basic-perceptron'
     }
   },
   {
@@ -173,7 +183,9 @@ export const initialEdges: Edge[] = [
     targetHandle: 'target-left',
     data: {
       katexLabel: ltx('a'),
-      label: 'a'
+      label: 'a',
+      isAnimating: false,
+      flowId: 'basic-perceptron'
     }
   },
   {
@@ -183,7 +195,9 @@ export const initialEdges: Edge[] = [
     targetHandle: 'target-bottom',
     data: {
       katexLabel: ltx('y'),
-      label: 'y'
+      label: 'y',
+      isAnimating: false,
+      flowId: 'basic-perceptron'
     }
   },
   {
@@ -193,7 +207,9 @@ export const initialEdges: Edge[] = [
     targetHandle: 'target-left',
     data: {
       katexLabel: ltx('L'),
-      label: 'L'
+      label: 'L',
+      isAnimating: false,
+      flowId: 'basic-perceptron'
     }
   }
 ]
