@@ -47,7 +47,7 @@ export function useLayout(flowId: string) {
     })
 
     const lossNode = mappedNodes.find((node) => node.data.type === 'binary_cross_entropy')
-    const groundTruthNode = mappedNodes.find((node) => node.data.type === 'ground_truth')
+    const groundTruthNode = mappedNodes.find((node) => node.data.type === 'ground-truth')
     const lossOutputNode = mappedNodes.find((node) => node.data.type === 'loss_output')
 
     if (lossNode && groundTruthNode) {

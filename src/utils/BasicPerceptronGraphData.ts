@@ -93,7 +93,7 @@ export const initialNodes: Node[] = [
     type: CUSTOM_NODE_TYPE,
     position: initialPosition,
     sourcePosition: Position.Top,
-    data: { type: 'ground_truth', label: 'y', layer_id: 5 },
+    data: { type: 'ground-truth', label: 'y', layer_id: 5 },
   },
   {
     id: '7',

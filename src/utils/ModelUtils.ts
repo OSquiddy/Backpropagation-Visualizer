@@ -60,11 +60,11 @@ export function calculateIncomingValue(tensor: TensorType): Tensor {
     // A loss node will have two parents. One is the predicted value and the other is the ground truth value.
 
     // Predicted value
-    const predictedValueTensorId = tensor.parents.find((parent) => parent.type !== 'ground_truth')!.id
+    const predictedValueTensorId = tensor.parents.find((parent) => parent.type !== 'ground-truth')!.id
     const predictedValue = tensorValuesMap.value[predictedValueTensorId]!.outgoingValue as number
 
     // Ground truth value
-    const groundTruthValueTensorId = tensor.parents.find((parent) => parent.type === 'ground_truth')!.id
+    const groundTruthValueTensorId = tensor.parents.find((parent) => parent.type === 'ground-truth')!.id
     const groundTruthValue = tensorValuesMap.value[groundTruthValueTensorId]!.outgoingValue as number
 
     result = { 'predictedValue': predictedValue, 'groundTruthValue': groundTruthValue } as Record<string, Tensor>
