@@ -82,12 +82,16 @@ if (layerType.value === 'data') {
     value: (node as ValueTypeTensors).value,
     outgoingValue: 0,
     gradient: 0,
+    incomingGradient: 0,
+    localGradient: 0,
   } as ValueTypeTensors
 } else {
   layerDataPayload.data = {
     ...commonTensorData,
     outgoingValue: 0,
     gradient: 0,
+    incomingGradient: 0,
+    localGradient: 0,
   } as OperationTypeTensors | LossTypeTensors | ActivationTypeTensors
 }
 

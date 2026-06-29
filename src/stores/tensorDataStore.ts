@@ -94,6 +94,8 @@ export const useTensorDataStore = defineStore('tensorData', () => {
       const type = node.data.type
       const label = node.data.label
       const gradient = 0
+      const incomingGradient = 0
+      const localGradient = 0
       const layerId = node.data.layer_id
 
       const baseTensorValue = {
@@ -113,6 +115,8 @@ export const useTensorDataStore = defineStore('tensorData', () => {
           value: value,
           outgoingValue: outgoingValue,
           gradient: gradient,
+          incomingGradient: incomingGradient,
+          localGradient: localGradient,
         }
         tensorValue = obj as ValueTypeTensors
       } else if (
@@ -127,6 +131,8 @@ export const useTensorDataStore = defineStore('tensorData', () => {
           incomingValue: incomingValue,
           outgoingValue: outgoingValue,
           gradient: gradient,
+          incomingGradient: incomingGradient,
+          localGradient: localGradient,
         } as ActivationTypeTensors
         tensorValue = obj as ActivationTypeTensors
       } else if (
@@ -140,10 +146,12 @@ export const useTensorDataStore = defineStore('tensorData', () => {
       ) {
         const obj = {
           ...baseTensorValue,
-          incomingValue: [] as TensorType[],
+          incomingValue: [],
           outgoingValue: outgoingValue,
           gradient: gradient,
-        }
+          incomingGradient: incomingGradient,
+          localGradient: localGradient,
+        } as OperationTypeTensors
         tensorValue = obj as OperationTypeTensors
       } else {
         const obj = {
@@ -151,6 +159,8 @@ export const useTensorDataStore = defineStore('tensorData', () => {
           incomingValue: incomingValue,
           outgoingValue: outgoingValue,
           gradient: gradient,
+          incomingGradient: incomingGradient,
+          localGradient: localGradient,
         } as LossTypeTensors
         tensorValue = obj as LossTypeTensors
       }
@@ -165,7 +175,7 @@ export const useTensorDataStore = defineStore('tensorData', () => {
     tensorValuesMap.value[payload.id] = payload
   }
 
-  
+
   const perceptronLayerMap = ref<Record<number, PerceptronLayer>>({})
 
   function initializePerceptronLayerMap() {

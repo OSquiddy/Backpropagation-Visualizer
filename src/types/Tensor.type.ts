@@ -8,9 +8,11 @@ export type BaseTensorType = {
   children: { id: string, type: string }[]
   label: string
   layerId: number
+  incomingGradient: Tensor,
+  localGradient: Tensor,
   gradient?: Tensor,
-  incomingValue: Tensor
-  outgoingValue: Tensor
+  incomingValue: Tensor | Record<string | number, Tensor>
+  outgoingValue: Tensor | Record<string | number, Tensor>
 }
 
 export type ValueTypeTensors = BaseTensorType & {

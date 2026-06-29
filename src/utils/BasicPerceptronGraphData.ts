@@ -68,7 +68,7 @@ export const initialNodes: Node[] = [
     position: initialPosition,
     sourcePosition: Position.Right,
     targetPosition: Position.Left,
-    data: { type: 'bias', label: 'b', value: 2, layer_id: 2 },
+    data: { type: 'bias', label: 'b', value: 2, layer_id: 1 },
   },
   {
     id: '4',

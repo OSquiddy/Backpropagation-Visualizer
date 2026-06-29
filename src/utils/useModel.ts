@@ -52,7 +52,7 @@ export function useModel(id?: string) {
     }
 
     return {
-      step: 0,
+      step: layerId,
       type: 'forward',
       updatedTensors: updatedTensors,
       all: all,
@@ -60,11 +60,36 @@ export function useModel(id?: string) {
   }
 
   function backward(layerId: number): History | undefined {
+    const all = []
+
+    const layer = perceptronLayerMap.value[layerId]
+    if (!layer) {
+      console.error(`Layer ${layerId} not found in perceptronLayerMap`)
+      return
+    }
+
+    for (const tensorId of [...layer.tensorIds].reverse()) {
+      const tensor = tensorValuesMap.value[tensorId]
+      if (!tensor) {
+        console.error(`Tensor ${tensorId} not found in tensorValuesMap`)
+        continue
+      }
+
+      if (tensor.type === 'ground-truth') {
+        continue
+      }
+
+      tensor.gradient = ModelUtils.calculateGradient(tensor)
+      // console.log('Tensor', tensor, 'gradient', tensor.gradient)
+
+      all.push(tensor)
+    }
+
     return {
-      step: 0,
+      step: layerId,
       type: 'backward',
-      updatedTensors: [],
-      all: [],
+      updatedTensors: all,
+      all: all,
     }
   }
 

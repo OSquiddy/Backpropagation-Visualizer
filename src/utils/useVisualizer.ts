@@ -12,11 +12,23 @@ export function useVisualizer(id: string) {
   const model = useModel(id)
 
   function play(layerId: number): void {
-    // console.log('play', layerId)
     resetPerceptronStateHistory()
+    const baseState = {
+      step: 0,
+      type: 'base',
+      updatedTensors: [],
+      all: [],
+    } as History
+    addToPerceptronStateHistory(baseState)
     for (let i = layerId; i < Object.keys(perceptronLayerMap.value).length; i++) {
-      console.log('i', i)
       const history: History | undefined = model.forwardPass(i)
+      if (history) {
+        addToPerceptronStateHistory(history)
+      }
+    }
+    const numLayers = Object.keys(perceptronLayerMap.value).length
+    for (let i = numLayers - 1; i > 0; i--) {
+      const history: History | undefined = model.backward(i)
       if (history) {
         addToPerceptronStateHistory(history)
       }
