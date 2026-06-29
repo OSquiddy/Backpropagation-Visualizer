@@ -13,7 +13,7 @@ export function useLayout(flowId: string) {
     graph.value = dagreGraph
     dagreGraph.setDefaultEdgeLabel(() => ({}))
 
-    dagreGraph.setGraph({ rankdir: direction, ranksep: 100 })
+    dagreGraph.setGraph({ rankdir: direction, ranksep: 120 })
 
     for (const node of nodes) {
       const graphNode = findNode(node.id)
